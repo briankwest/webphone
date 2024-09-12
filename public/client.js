@@ -21,30 +21,48 @@ async function connect() {
     token: _token,
   });
 
+  await _client.connect();
+
   _client.online({
     incomingCallHandlers: { all: _incomingCallNotification },
   });
-
-  await _client.connect();
+  
   console.log('Connected to SignalWire');
 }
 
 async function _incomingCallNotification(notification) {
-  console.log('Incoming call');
+  console.log('Incoming call', notification.invite.details.caller_id_number);
+  incomingCallFrom.innerHTML = notification.invite.details.caller_id_number;
   _invite = notification.invite;
+  incomingCall.style.display = 'block';
+  dialControls.style.display = 'none';
 }
 
 async function answerCall() {
   if (_invite) {
-    _call = await _invite.accept({
-      rootElement: document.getElementById('rootElement'),
-    });
+    _call = await _invite.accept();
+    callControls.style.display = 'block';
+    incomingCall.style.display = 'none';
     
     _call.on('destroy', function() {
       console.log('Call ended');
       _call = null;
     });
   }
+}
+
+async function hangupCall() {
+  if (_call && _call.state !== 'destroy') {
+    _call.hangup()
+  }
+  resetUI();
+}
+
+async function rejectCall() {
+  if (_invite) {
+    _invite.reject();
+  }
+  resetUI();
 }
 
 async function makeCall() {
@@ -57,9 +75,18 @@ async function makeCall() {
   _call.on('destroy', function() {
     console.log('Call ended');
     _call = null;
+    resetUI();
   });
 
   await _call.start();
+  callControls.style.display = 'block';
+  dialControls.style.display = 'none';
+}
+
+function resetUI() {
+  incomingCall.style.display = 'none';
+  dialControls.style.display = 'block';
+  callControls.style.display = 'none';
 }
 
 ready(async function() {
