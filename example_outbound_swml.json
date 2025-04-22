@@ -1,0 +1,18 @@
+{
+    "version": "1.0.0",
+    "sections": {
+      "main": [
+        {
+          "record_call": {
+            "format": "wav"
+          }
+        },
+        {
+          "connect": {
+            "to": "%{vars.userVariables.destination_number}",
+            "from": "+1NXXNXXXXXX"
+          }
+        }
+      ]
+    }
+  }
