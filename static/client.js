@@ -142,14 +142,18 @@ async function makeCall() {
   
   try {
     // Get destination and root element
-    const destination = document.getElementById('destination')?.value || '/private/main-dialplan';
+    const destination = document.getElementById('destination')?.value || '/private/call-pstn';
+    const destination_number = document.getElementById('destination_number')?.value || '+19184238080';
     const rootElement = document.getElementById('rootElement');
     
     // Create call options
     const options = {
       to: destination,
       audio: true,
-      video: true
+      video: true,
+      userVariables: {
+        destination_number: destination_number
+      }
     };
     
     // Only add rootElement if it exists

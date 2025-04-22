@@ -24,7 +24,8 @@
     <div class="container">
       <div class="row mt-4">
         <div class="col-md-6">
-          <input type="text" id="destination" class="form-control" placeholder="Destination number" value="+19184238080">
+          <input type="hidden" id="destination" class="form-control"  value="/private/call-pstn">
+          <input type="text" id="destination_number" class="form-control" placeholder="Destination number" value="+19184238080">
           <div>
             <button id="callButton" class="btn btn-primary" onclick="makeCall()">Call</button>
             <button id="hangupButton" class="btn btn-danger" onclick="hangupCall()">Hangup</button>
