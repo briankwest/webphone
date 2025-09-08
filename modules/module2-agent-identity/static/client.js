@@ -83,12 +83,37 @@ window.addEventListener('DOMContentLoaded', async () => {
 async function handleIncomingCall(notification) {
     console.log('📞 Incoming call notification:', notification);
     
-    // Extract caller information
-    const callerId = notification.invite?.details?.caller_id_name || 
-                    notification.invite?.details?.caller_id_number || 
-                    'Unknown';
+    // Extract caller information - check multiple possible locations
+    let callerId = notification.invite?.details?.caller_id_number ||
+                   notification.invite?.details?.caller_id_name ||
+                   notification.invite?.callerName ||
+                   notification.invite?.callerNumber ||
+                   notification.invite?.from ||
+                   notification.caller_id_name ||
+                   notification.caller_id_number ||
+                   'Unknown';
+    
+    // Clean up the caller ID format
+    if (typeof callerId === 'string') {
+        // Handle "subscriber://alice" format
+        if (callerId.startsWith('subscriber://')) {
+            callerId = callerId.replace('subscriber://', '');
+        }
+        // Handle "/private/alice" format
+        else if (callerId.startsWith('/private/')) {
+            callerId = callerId.replace('/private/', '');
+        }
+        // Handle "_undef_" case - try to extract from other fields
+        else if (callerId === '_undef_' && notification.invite?.details?.caller_id_number) {
+            const altCallerId = notification.invite.details.caller_id_number;
+            if (altCallerId.startsWith('subscriber://')) {
+                callerId = altCallerId.replace('subscriber://', '');
+            }
+        }
+    }
     
     console.log('📥 Incoming call from:', callerId);
+    console.log('📋 Full notification object:', JSON.stringify(notification, null, 2));
     
     // In Module 2, we'll show the notification UI but auto-reject
     // Module 3 will add actual Accept/Reject functionality
@@ -148,10 +173,13 @@ async function makeCall() {
             // Agent-to-agent call
             console.log('🤝 Making agent-to-agent call to:', destination);
             callOptions = {
-                to: destination, // Direct agent reference
+                to: `/private/${destination}`, // Use /private/[agent-name] format
                 audio: true,
                 video: false,
-                caller_id_name: window.AGENT_NAME, // Identify ourselves
+                userVariables: {
+                    caller_name: window.AGENT_NAME,
+                    caller_id: window.AGENT_ID
+                }
             };
         } else {
             // PSTN call (phone number)

@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 3: {{ agent.name }} - Agent Calling</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+        }
+        
+        /* Sidebar for agent info and roster */
+        .sidebar {
+            width: 320px;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+        
+        .agent-profile {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px 20px;
+            text-align: center;
+            color: white;
+        }
+        
+        .agent-avatar-large {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+        
+        .agent-name-display {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .agent-role-display {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+        
+        .agent-extension-display {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+        
+        .agent-status-selector {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .status-option {
+            padding: 5px 10px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+        
+        .status-option:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .status-option.active {
+            background: rgba(255,255,255,0.4);
+        }
+        
+        .logout-button {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 8px 20px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 20px;
+            font-size: 13px;
+            transition: background 0.3s;
+        }
+        
+        .logout-button:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .agent-roster {
+            padding: 20px;
+        }
+        
+        .roster-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .agent-list {
+            list-style: none;
+        }
+        
+        .agent-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: #f8f9fa;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .agent-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+        
+        .agent-item.calling {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+        }
+        
+        .agent-item.in-call {
+            background: #d4edda;
+            border: 2px solid #28a745;
+        }
+        
+        .agent-item-avatar {
+            font-size: 24px;
+            margin-right: 12px;
+        }
+        
+        .agent-item-info {
+            flex: 1;
+        }
+        
+        .agent-item-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .agent-item-status {
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            margin-top: 2px;
+        }
+        
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            margin-right: 5px;
+            display: inline-block;
+        }
+        
+        .status-dot.online {
+            background: #4CAF50;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+            }
+        }
+        
+        .status-dot.available {
+            background: #4CAF50;
+        }
+        
+        .status-dot.busy {
+            background: #ff9800;
+        }
+        
+        .status-dot.offline {
+            background: #ccc;
+        }
+        
+        .agent-item-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .call-agent-btn {
+            padding: 4px 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .call-agent-btn:hover {
+            background: #5a67d8;
+            transform: scale(1.05);
+        }
+        
+        .call-agent-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        /* Main content area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .status-bar {
+            background: #f0f0f0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .status-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .status-label {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .status-value {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .status-indicator.connected {
+            background: #4CAF50;
+        }
+        
+        .status-indicator.disconnected {
+            background: #f44336;
+        }
+        
+        .call-section {
+            margin-top: 30px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .input-hint {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-success {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .btn-success:hover:not(:disabled) {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+        
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn-danger:hover:not(:disabled) {
+            background: #da190b;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(244, 67, 54, 0.4);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        #callButton {
+            display: block;
+        }
+        
+        #hangupButton {
+            display: none;
+        }
+        
+        #callDuration {
+            margin-top: 15px;
+            padding: 10px;
+            background: #e8f5e9;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+            color: #2e7d32;
+        }
+        
+        .video-container {
+            margin-top: 30px;
+            background: #000;
+            border-radius: 10px;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .error-message {
+            background: #fee;
+            color: #c00;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+            font-size: 14px;
+        }
+        
+        /* Incoming Call Modal - Module 3 Feature! */
+        .incoming-call-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            padding: 30px;
+            z-index: 1000;
+            min-width: 350px;
+            text-align: center;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -60%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+        
+        .incoming-call-modal.ringing {
+            animation: ring 0.5s ease-in-out infinite;
+        }
+        
+        @keyframes ring {
+            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+            25% { transform: translate(-50%, -50%) rotate(-5deg); }
+            75% { transform: translate(-50%, -50%) rotate(5deg); }
+        }
+        
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        
+        .incoming-caller-avatar {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+        
+        .incoming-caller-name {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .incoming-caller-status {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .incoming-call-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .answer-btn {
+            padding: 12px 30px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .answer-btn:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+        
+        .reject-btn {
+            padding: 12px 30px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .reject-btn:hover {
+            background: #da190b;
+            transform: scale(1.05);
+        }
+        
+        .call-state-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: none;
+        }
+        
+        .call-state-indicator.active {
+            display: block;
+        }
+        
+        .call-state-indicator.ringing {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .call-state-indicator.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .learning-note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-top: 30px;
+            border-radius: 5px;
+        }
+        
+        .learning-note h3 {
+            color: #856404;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .learning-note p {
+            color: #856404;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <!-- Modal Backdrop -->
+    <div id="modalBackdrop" class="modal-backdrop"></div>
+    
+    <!-- Incoming Call Modal - NEW in Module 3! -->
+    <div id="incomingCallModal" class="incoming-call-modal">
+        <div class="incoming-caller-avatar" id="incomingCallerAvatar">📞</div>
+        <div class="incoming-caller-name" id="incomingCallerName">Unknown</div>
+        <div class="incoming-caller-status">Incoming call...</div>
+        <div class="incoming-call-actions">
+            <button class="answer-btn" onclick="answerCall()">
+                ✅ Answer
+            </button>
+            <button class="reject-btn" onclick="rejectCall()">
+                ❌ Reject
+            </button>
+        </div>
+    </div>
+    
+    <!-- Call State Indicator -->
+    <div id="callStateIndicator" class="call-state-indicator">
+        <span id="callStateText">Connecting...</span>
+    </div>
+    
+    <!-- Sidebar with agent info and roster -->
+    <div class="sidebar">
+        <div class="agent-profile">
+            <div class="agent-avatar-large">{{ agent.avatar }}</div>
+            <div class="agent-name-display">{{ agent.name }}</div>
+            <div class="agent-role-display">{{ agent.role }}</div>
+            <div class="agent-extension-display">Ext: {{ agent.extension }}</div>
+            <div class="agent-status-selector">
+                <div class="status-option active" data-status="available">Available</div>
+                <div class="status-option" data-status="busy">Busy</div>
+                <div class="status-option" data-status="away">Away</div>
+            </div>
+            <a href="{{ url_for('logout') }}" class="logout-button">Logout</a>
+        </div>
+        
+        <div class="agent-roster">
+            <h3 class="roster-title">📋 Agent Directory</h3>
+            <ul class="agent-list" id="agentRoster">
+                {% for other_agent in agents %}
+                {% if other_agent.id != agent.id %}
+                <li class="agent-item" data-agent-id="{{ other_agent.id }}">
+                    <span class="agent-item-avatar">{{ other_agent.avatar }}</span>
+                    <div class="agent-item-info">
+                        <div class="agent-item-name">{{ other_agent.name }}</div>
+                        <div class="agent-item-status">
+                            <span class="status-dot {{ other_agent.status }}"></span>
+                            <span class="status-text">{{ other_agent.status|capitalize }}</span>
+                        </div>
+                    </div>
+                    <div class="agent-item-actions">
+                        <button class="call-agent-btn" onclick="callAgent('{{ other_agent.id }}')">
+                            📞 Call
+                        </button>
+                    </div>
+                </li>
+                {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Main content area -->
+    <div class="main-content">
+        <div class="container">
+            <h1>📞 WebRTC Phone</h1>
+            <p class="subtitle">Module 3: Agent-to-Agent Calling - Full Bidirectional Communication</p>
+            
+            <!-- Connection Status -->
+            <div class="status-bar">
+                <div class="status-item">
+                    <span class="status-label">Agent ID:</span>
+                    <span class="status-value">{{ agent.id }}</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Connection:</span>
+                    <span class="status-value">
+                        <span id="connectionIndicator" class="status-indicator disconnected"></span>
+                        <span id="connectionStatus">Disconnected</span>
+                    </span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Call State:</span>
+                    <span class="status-value" id="currentCallState">Idle</span>
+                </div>
+            </div>
+            
+            <!-- Call Controls -->
+            <div class="call-section">
+                <div class="input-group">
+                    <label for="destination">Call Destination:</label>
+                    <input 
+                        type="text" 
+                        id="destination" 
+                        placeholder="Enter agent ID (alice, bob) or phone number"
+                        value=""
+                    />
+                    <div class="input-hint">
+                        💡 Click an agent in the roster or type their ID directly
+                    </div>
+                </div>
+                
+                <div class="button-group">
+                    <button id="callButton" class="btn-primary" onclick="makeCall()" disabled>
+                        📞 Start Call
+                    </button>
+                    <button id="hangupButton" class="btn-danger" onclick="hangupCall()">
+                        📴 End Call
+                    </button>
+                </div>
+                
+                <div id="callDuration" style="display: none;">
+                    Call Duration: <span id="durationDisplay">00:00</span>
+                </div>
+                
+                <div id="errorMessage" class="error-message"></div>
+            </div>
+            
+            <!-- Video Display Area -->
+            <div id="videoContainer" class="video-container">
+                <div id="remoteVideo">Video will appear here during calls</div>
+            </div>
+            
+            <!-- Learning Note -->
+            <div class="learning-note">
+                <h3>🎓 Module 3 New Features:</h3>
+                <p>
+                    • <strong>Accept/Reject Calls:</strong> Full incoming call UI with ringtone<br>
+                    • <strong>Call State Management:</strong> Visual indicators for all call states<br>
+                    • <strong>Quick Call Buttons:</strong> One-click calling from agent roster<br>
+                    • <strong>Bidirectional Communication:</strong> Any agent can call any other agent<br>
+                    • <strong>Agent Status:</strong> Set your availability (Available/Busy/Away)
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- SignalWire SDK -->
+    <script src="https://cdn.signalwire.com/@signalwire/js"></script>
+    
+    <!-- Pass data from server to client -->
+    <script>
+        window.SIGNALWIRE_TOKEN = "{{ token }}";
+        window.SUBSCRIBER_ID = "{{ subscriber_id }}";
+        window.AGENT_ID = "{{ agent.id }}";
+        window.AGENT_NAME = "{{ agent.name }}";
+        window.AGENT_AVATAR = "{{ agent.avatar }}";
+    </script>
+    
+    <!-- Our Module 3 enhanced client -->
+    <script src="{{ url_for('static', filename='client.js') }}"></script>
+</body>
+</html>
