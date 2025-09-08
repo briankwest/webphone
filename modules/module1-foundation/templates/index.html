@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 1: Basic WebRTC Phone</title>
+    
+    <!-- Simple styling - no external dependencies in Module 1 -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            margin: 20px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .status-bar {
+            background: #f0f0f0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .status-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .status-label {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .status-value {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .status-indicator.connected {
+            background: #4CAF50;
+        }
+        
+        .status-indicator.disconnected {
+            background: #f44336;
+        }
+        
+        .call-section {
+            margin-top: 30px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn-danger:hover:not(:disabled) {
+            background: #da190b;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(244, 67, 54, 0.4);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        #callButton {
+            display: block;
+        }
+        
+        #hangupButton {
+            display: none;
+        }
+        
+        .video-container {
+            margin-top: 30px;
+            background: #000;
+            border-radius: 10px;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .learning-note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-top: 30px;
+            border-radius: 5px;
+        }
+        
+        .learning-note h3 {
+            color: #856404;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .learning-note p {
+            color: #856404;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        
+        .error-message {
+            background: #fee;
+            color: #c00;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📞 WebRTC Phone</h1>
+        <p class="subtitle">Module 1: Foundation - Basic Connection & Calling</p>
+        
+        <!-- Connection Status -->
+        <div class="status-bar">
+            <div class="status-item">
+                <span class="status-label">User:</span>
+                <span class="status-value">user1</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Connection:</span>
+                <span class="status-value">
+                    <span id="connectionIndicator" class="status-indicator disconnected"></span>
+                    <span id="connectionStatus">Disconnected</span>
+                </span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Subscriber ID:</span>
+                <span class="status-value" id="subscriberId">{{ subscriber_id[:8] }}...</span>
+            </div>
+        </div>
+        
+        <!-- Call Controls -->
+        <div class="call-section">
+            <div class="input-group">
+                <label for="phoneNumber">Phone Number to Call:</label>
+                <input 
+                    type="tel" 
+                    id="phoneNumber" 
+                    placeholder="+1 (555) 123-4567"
+                    value="+19184238080"
+                />
+            </div>
+            
+            <div class="button-group">
+                <button id="callButton" class="btn-primary" onclick="makeCall()" disabled>
+                    📞 Start Call
+                </button>
+                <button id="hangupButton" class="btn-danger" onclick="hangupCall()">
+                    📴 End Call
+                </button>
+            </div>
+            
+            <div id="errorMessage" class="error-message"></div>
+        </div>
+        
+        <!-- Video Display Area -->
+        <div id="videoContainer" class="video-container">
+            <div id="remoteVideo">Video will appear here during calls</div>
+        </div>
+        
+        <!-- Learning Note -->
+        <div class="learning-note">
+            <h3>🎓 Learning Point:</h3>
+            <p>
+                This basic implementation shows the minimum required for WebRTC calling:
+                token authentication, SignalWire client connection, and call initiation.
+                Open the browser console to see detailed logs of the WebRTC connection process.
+            </p>
+        </div>
+    </div>
+    
+    <!-- SignalWire SDK -->
+    <script src="https://cdn.signalwire.com/@signalwire/js"></script>
+    
+    <!-- Pass token from server to client -->
+    <script>
+        // Token is injected by the server
+        window.SIGNALWIRE_TOKEN = "{{ token }}";
+        window.SUBSCRIBER_ID = "{{ subscriber_id }}";
+    </script>
+    
+    <!-- Our WebRTC client code -->
+    <script src="{{ url_for('static', filename='client.js') }}"></script>
+</body>
+</html>
