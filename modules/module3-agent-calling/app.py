@@ -1,7 +1,7 @@
 """
-Module 2: Agent Identity - Multi-user WebRTC Phone
-Enhanced Flask application with agent login, identity management,
-and agent roster functionality.
+Module 3: Agent-to-Agent Calling - Bidirectional WebRTC Phone
+Enhanced Flask application with bidirectional calling, call state management,
+and incoming call handling.
 """
 
 import os
@@ -31,7 +31,7 @@ def get_agent_by_id(agent_id):
 def get_signalwire_token(agent_reference):
     """
     Get a SignalWire token for a specific agent.
-    Module 2 uses dynamic agent references instead of fixed 'user1'.
+    Module 3 enables bidirectional agent-to-agent calling with call state management.
     """
     url = f"https://{os.environ.get('SIGNALWIRE_SPACE')}/api/fabric/subscribers/tokens"
     
@@ -158,7 +158,7 @@ def health():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 3000))
-    print(f"Module 2: Agent Identity - Starting on port {port}")
+    print(f"Module 3: Agent-to-Agent Calling - Starting on port {port}")
     print("Features: Multi-agent support, login system, agent roster")
     print(f"Available agents: {', '.join([a['id'] for a in load_agents()])}")
     app.run(host='0.0.0.0', port=port, debug=True)

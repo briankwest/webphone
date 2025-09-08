@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ agent_name }}'s Phone</title>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        
+        .phone-container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .status {
+            padding: 10px;
+            margin: 20px 0;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .status.disconnected {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .status.connected {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .status.calling {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+        
+        .status.incall {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        button {
+            flex: 1;
+            padding: 15px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .call-btn {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .call-btn:hover:not(:disabled) {
+            background: #45a049;
+        }
+        
+        .answer-btn {
+            background: #2196f3;
+            color: white;
+        }
+        
+        .answer-btn:hover:not(:disabled) {
+            background: #1976d2;
+        }
+        
+        .hangup-btn {
+            background: #f44336;
+            color: white;
+        }
+        
+        .hangup-btn:hover:not(:disabled) {
+            background: #d32f2f;
+        }
+        
+        .reject-btn {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .reject-btn:hover:not(:disabled) {
+            background: #f57c00;
+        }
+        
+        .incoming-call {
+            display: none;
+            padding: 20px;
+            background: #e3f2fd;
+            border-radius: 5px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .incoming-call.show {
+            display: block;
+        }
+        
+        .video-container {
+            display: none;
+            margin: 20px 0;
+            background: #000;
+            border-radius: 5px;
+            min-height: 300px;
+        }
+        
+        .video-container.show {
+            display: block;
+        }
+        
+        .instructions {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <h1>{{ agent_name }}'s Phone</h1>
+        
+        <div id="status" class="status disconnected">
+            Connecting...
+        </div>
+        
+        <div id="incoming-call" class="incoming-call">
+            <h3>📞 Incoming call from <span id="caller-name">Unknown</span></h3>
+            <div class="controls">
+                <button id="answer-btn" class="answer-btn">Answer</button>
+                <button id="reject-btn" class="reject-btn">Reject</button>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="call-btn" class="call-btn" disabled>Call {{ other_agent }}</button>
+            <button id="hangup-btn" class="hangup-btn" disabled>Hang Up</button>
+        </div>
+        
+        <div id="video-container" class="video-container"></div>
+        
+        <div class="instructions">
+            <strong>Instructions:</strong><br>
+            1. Wait for "Connected" status<br>
+            2. Click "Call {{ other_agent }}" to make a call<br>
+            3. Answer incoming calls when they appear<br>
+            4. Use "Hang Up" to end the call
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@signalwire/js@dev/dist/index.js"></script>
+    <script src="{{ url_for('static', filename='client_simple.js') }}"></script>
+    <script>
+        // Pass agent info to JavaScript
+        window.AGENT_NAME = "{{ agent_name }}";
+        window.AGENT_ID = "{{ agent_id }}";
+        window.OTHER_AGENT = "{{ other_agent }}".toLowerCase();
+    </script>
+</body>
+</html>

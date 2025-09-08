@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ agent.name }} - Demo Frame</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .agent-phone {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        
+        .agent-info {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .agent-avatar {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        
+        .agent-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .connection-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 15px;
+            background: #f0f0f0;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ccc;
+        }
+        
+        .status-dot.connected {
+            background: #4CAF50;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+            }
+            50% {
+                box-shadow: 0 0 0 5px rgba(76, 175, 80, 0);
+            }
+        }
+        
+        .call-controls {
+            margin-bottom: 20px;
+        }
+        
+        .dial-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        .dial-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            background: #5a67d8;
+        }
+        
+        .btn-success {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .btn-success:hover:not(:disabled) {
+            background: #45a049;
+        }
+        
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn-danger:hover:not(:disabled) {
+            background: #da190b;
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .call-status {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .call-status-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .call-status-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .call-status.idle {
+            background: #f8f9fa;
+        }
+        
+        .call-status.ringing {
+            background: #fff3cd;
+            animation: ring 0.5s ease-in-out infinite;
+        }
+        
+        @keyframes ring {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-3deg); }
+            75% { transform: rotate(3deg); }
+        }
+        
+        .call-status.connected {
+            background: #d4edda;
+        }
+        
+        #callDuration {
+            font-size: 14px;
+            color: #28a745;
+            margin-top: 5px;
+        }
+        
+        /* Incoming Call Modal */
+        .incoming-call-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 30px;
+            z-index: 1000;
+            text-align: center;
+            min-width: 280px;
+        }
+        
+        .incoming-call-modal.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -60%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+        
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        
+        .modal-backdrop.show {
+            display: block;
+        }
+        
+        .incoming-caller {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .incoming-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        /* Other Agents List */
+        .other-agents {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+        }
+        
+        .other-agents-title {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .agent-quick-dial {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .agent-quick-dial:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+        
+        .agent-quick-dial-avatar {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+        
+        .agent-quick-dial-name {
+            flex: 1;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .agent-quick-dial-action {
+            padding: 5px 12px;
+            background: #667eea;
+            color: white;
+            border-radius: 15px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Modal Backdrop -->
+    <div id="modalBackdrop" class="modal-backdrop"></div>
+    
+    <!-- Incoming Call Modal -->
+    <div id="incomingCallModal" class="incoming-call-modal">
+        <div class="incoming-caller">
+            📞 Incoming call from<br>
+            <span id="incomingCallerName">Unknown</span>
+        </div>
+        <div class="incoming-actions">
+            <button class="btn-success" onclick="answerCall()">✅ Answer</button>
+            <button class="btn-danger" onclick="rejectCall()">❌ Reject</button>
+        </div>
+    </div>
+    
+    <!-- Main Phone Interface -->
+    <div class="agent-phone">
+        <!-- Agent Info -->
+        <div class="agent-info">
+            <div class="agent-avatar">{{ agent.avatar }}</div>
+            <div class="agent-name">{{ agent.name }}</div>
+            <div class="connection-status">
+                <span class="status-dot" id="connectionDot"></span>
+                <span id="connectionStatus">Connecting...</span>
+            </div>
+        </div>
+        
+        <!-- Call Status -->
+        <div id="callStatusPanel" class="call-status idle">
+            <div class="call-status-label">Call Status</div>
+            <div class="call-status-value" id="callStatusText">Ready</div>
+            <div id="callDuration" style="display: none;">
+                Duration: <span id="durationDisplay">00:00</span>
+            </div>
+        </div>
+        
+        <!-- Call Controls -->
+        <div class="call-controls">
+            <input 
+                type="text" 
+                id="destination" 
+                class="dial-input"
+                placeholder="Enter agent name (alice, bob, etc.)"
+                value="{{ 'alice' if agent.id == 'bob' else 'bob' }}"
+            />
+            
+            <div class="button-group">
+                <button id="callButton" class="btn-primary" onclick="makeCall()" disabled>
+                    📞 Call
+                </button>
+                <button id="hangupButton" class="btn-danger" onclick="hangupCall()" style="display: none;">
+                    📴 Hang Up
+                </button>
+            </div>
+        </div>
+        
+        <!-- Other Agents -->
+        <div class="other-agents">
+            <div class="other-agents-title">Quick Dial</div>
+            {% for other_agent in agents %}
+            {% if other_agent.id != agent.id %}
+            <div class="agent-quick-dial" onclick="quickDial('{{ other_agent.id }}')">
+                <span class="agent-quick-dial-avatar">{{ other_agent.avatar }}</span>
+                <span class="agent-quick-dial-name">{{ other_agent.name }}</span>
+                <span class="agent-quick-dial-action">Call</span>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- SignalWire SDK -->
+    <script src="https://cdn.signalwire.com/@signalwire/js"></script>
+    
+    <!-- Pass data from server -->
+    <script>
+        window.SIGNALWIRE_TOKEN = "{{ token }}";
+        window.SUBSCRIBER_ID = "{{ subscriber_id }}";
+        window.AGENT_ID = "{{ agent.id }}";
+        window.AGENT_NAME = "{{ agent.name }}";
+        window.IS_DEMO_FRAME = {{ 'true' if is_demo_frame else 'false' }};
+    </script>
+    
+    <!-- Demo Frame Client -->
+    <script src="{{ url_for('static', filename='demo_client.js') }}"></script>
+</body>
+</html>

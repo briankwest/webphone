@@ -4,7 +4,7 @@
  * This enhanced client adds:
  * 1. Agent-aware connections (each agent has unique identity)
  * 2. Agent-to-agent calling support
- * 3. Presence tracking
+ * 3. Agent roster display
  * 4. Smart call routing (agent vs PSTN)
  * 
  * Learning Focus: Multi-user identity management in WebRTC

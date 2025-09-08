@@ -5,7 +5,7 @@
 By completing this module, you will:
 - ✅ Implement multi-user authentication with sessions
 - ✅ Create agent login and identity management
-- ✅ Build an agent roster with presence indicators
+- ✅ Build an agent roster showing available agents
 - ✅ Enable agent-to-agent calling by ID
 - ✅ Understand session management in WebRTC apps
 
@@ -235,7 +235,7 @@ Before moving to Module 3, ensure you can:
 You've successfully built a multi-user WebRTC system with:
 - Agent authentication and sessions
 - Dynamic token generation per user
-- Agent roster and presence
+- Agent roster display
 - Smart call routing
 
 **Next Module**: Agent-to-Agent Calling - Full bidirectional communication!
