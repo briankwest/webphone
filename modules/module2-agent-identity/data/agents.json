@@ -1,0 +1,36 @@
+{
+  "agents": [
+    {
+      "id": "alice",
+      "name": "Alice Johnson",
+      "role": "Customer Service",
+      "avatar": "👩‍💼",
+      "status": "available",
+      "extension": "101"
+    },
+    {
+      "id": "bob",
+      "name": "Bob Smith",
+      "role": "Technical Support",
+      "avatar": "👨‍💻",
+      "status": "available",
+      "extension": "102"
+    },
+    {
+      "id": "charlie",
+      "name": "Charlie Davis",
+      "role": "Sales Representative",
+      "avatar": "👨‍💼",
+      "status": "available",
+      "extension": "103"
+    },
+    {
+      "id": "diana",
+      "name": "Diana Martinez",
+      "role": "Manager",
+      "avatar": "👩‍💼",
+      "status": "available",
+      "extension": "104"
+    }
+  ]
+}
