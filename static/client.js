@@ -3,6 +3,59 @@ var _call = null;
 var _invite = null;
 var _connected = false;
 
+// Request permissions for audio/video devices
+async function requestDevicePermissions(constraints = { audio: true, video: true }) {
+  try {
+    console.log('Requesting device permissions...');
+    await SignalWire.WebRTC.requestPermissions(constraints);
+    console.log('Device permissions granted');
+    return true;
+  } catch (error) {
+    console.error('Failed to get device permissions:', error);
+    return false;
+  }
+}
+
+// Check current permission status
+async function checkDevicePermissions() {
+  try {
+    const permissions = await SignalWire.WebRTC.checkPermissions();
+    const hasCameraPermission = await SignalWire.WebRTC.checkCameraPermissions();
+    const hasMicPermission = await SignalWire.WebRTC.checkMicrophonePermissions();
+
+    console.log('Permission status:', {
+      all: permissions,
+      camera: hasCameraPermission,
+      microphone: hasMicPermission
+    });
+
+    return { permissions, hasCameraPermission, hasMicPermission };
+  } catch (error) {
+    console.error('Error checking permissions:', error);
+    return null;
+  }
+}
+
+// Get available devices with automatic permission request
+async function getDevicesWithPermissions() {
+  try {
+    const cameras = await SignalWire.WebRTC.getCameraDevicesWithPermissions();
+    const microphones = await SignalWire.WebRTC.getMicrophoneDevicesWithPermissions();
+    const speakers = await SignalWire.WebRTC.getSpeakerDevicesWithPermissions();
+
+    console.log('Available devices:', {
+      cameras: cameras.length,
+      microphones: microphones.length,
+      speakers: speakers.length
+    });
+
+    return { cameras, microphones, speakers };
+  } catch (error) {
+    console.error('Error getting devices:', error);
+    return null;
+  }
+}
+
 function ready(callback) {
   if (document.readyState != 'loading') {
     callback();
@@ -19,26 +72,43 @@ function ready(callback) {
 
 async function connect() {
   try {
+    // Request permissions before connecting
+    const permissionsGranted = await requestDevicePermissions({ audio: true, video: true });
+
+    if (!permissionsGranted) {
+      console.warn('Device permissions not granted - connection may have limited functionality');
+      // You might want to show a UI warning here
+    }
+
+    // Check and log current permissions
+    await checkDevicePermissions();
+
+    // Get available devices (this will also ensure permissions if not already granted)
+    const devices = await getDevicesWithPermissions();
+    if (devices) {
+      console.log('Found devices:', devices);
+    }
+
     // Get the root element for video display
     const rootElement = document.getElementById('rootElement');
-    
+
     // Initialize the SignalWire client with the token
     const options = {
       token: _token
     };
-    
+
     // Only add rootElement if it exists
     if (rootElement) {
       options.rootElement = rootElement;
     }
-    
+
     _client = await SignalWire.SignalWire(options);
 
     // Set client to online to receive calls
     await _client.online({
       incomingCallHandlers: { all: _incomingCallNotification }
     });
-    
+
     _connected = true;
     console.log('Connected to SignalWire');
   } catch (error) {
@@ -199,7 +269,55 @@ function resetUI() {
   if (hangupButton) hangupButton.style.display = 'none';
 }
 
+// Update UI permission status
+async function updatePermissionUI() {
+  try {
+    const status = await checkDevicePermissions();
+    const micStatus = document.getElementById('micStatus');
+    const cameraStatus = document.getElementById('cameraStatus');
+
+    if (status) {
+      // Update microphone status
+      if (micStatus) {
+        if (status.hasMicPermission) {
+          micStatus.className = 'badge bg-success';
+          micStatus.textContent = '🎤 Microphone: Granted';
+        } else {
+          micStatus.className = 'badge bg-warning';
+          micStatus.textContent = '🎤 Microphone: Denied';
+        }
+      }
+
+      // Update camera status
+      if (cameraStatus) {
+        if (status.hasCameraPermission) {
+          cameraStatus.className = 'badge bg-success';
+          cameraStatus.textContent = '📹 Camera: Granted';
+        } else {
+          cameraStatus.className = 'badge bg-warning';
+          cameraStatus.textContent = '📹 Camera: Denied';
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error updating permission UI:', error);
+  }
+}
+
+// Manual permission request from UI button
+async function requestAndUpdatePermissions() {
+  const granted = await requestDevicePermissions({ audio: true, video: true });
+  await updatePermissionUI();
+
+  if (granted) {
+    const devices = await getDevicesWithPermissions();
+    console.log('Updated device list:', devices);
+  }
+}
+
 ready(async function() {
   console.log('ready');
   await connect();
+  // Update permission UI after connection
+  await updatePermissionUI();
 }); 

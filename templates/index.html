@@ -24,6 +24,16 @@
     <div class="container">
       <div class="row mt-4">
         <div class="col-md-6">
+          <!-- Permission Status Display -->
+          <div id="permissionStatus" class="alert alert-info mb-3">
+            <h6>Device Permissions</h6>
+            <div>
+              <span class="badge bg-secondary" id="micStatus">🎤 Microphone: Checking...</span>
+              <span class="badge bg-secondary" id="cameraStatus">📹 Camera: Checking...</span>
+            </div>
+            <button id="requestPermBtn" class="btn btn-sm btn-outline-primary mt-2" onclick="requestAndUpdatePermissions()">Request Permissions</button>
+          </div>
+
           <input type="hidden" id="destination" class="form-control"  value="/private/call-pstn">
           <input type="text" id="destination_number" class="form-control" placeholder="Destination number" value="+19184238080">
           <div>
