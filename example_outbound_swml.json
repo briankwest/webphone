@@ -9,8 +9,7 @@
         },
         {
           "connect": {
-            "to": "%{vars.userVariables.destination_number}",
-            "from": "+1NXXNXXXXXX"
+            "to": "%{vars.userVariables.destination_number}"
           }
         }
       ]
